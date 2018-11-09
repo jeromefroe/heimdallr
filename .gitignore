@@ -1,0 +1,5 @@
+# Golang dependencies
+vendor/
+
+# retool dependencies
+_tools/

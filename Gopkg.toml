@@ -1,0 +1,40 @@
+required = [
+  "k8s.io/code-generator/cmd/client-gen",
+  "k8s.io/code-generator/cmd/deepcopy-gen",
+  "k8s.io/code-generator/cmd/defaulter-gen",
+  "k8s.io/code-generator/cmd/lister-gen",
+  "k8s.io/code-generator/cmd/informer-gen",
+]
+
+[[constraint]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.12.0"
+
+[[constraint]]
+  name = "k8s.io/apimachinery"
+  version = "kubernetes-1.12.0"
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.12.0"
+
+[[constraint]]
+  name = "k8s.io/code-generator"
+  version = "kubernetes-1.12.0"
+
+[[constraint]]
+  name = "k8s.io/apiextensions-apiserver"
+  version = "kubernetes-1.12.0"
+
+[[override]]
+  name = "k8s.io/apiserver"
+  version = "kubernetes-1.12.0"
+
+# Fix vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go:246:4: cannot use expiresIn (type string) as type json.Number in field value
+# Fix vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go:247:4: cannot use expiresOn (type string) as type json.Number in field value
+# Fix vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go:248:4: cannot use expiresOn (type string) as type json.Number in field value
+# Fix vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go:265:23: cannot use token.token.ExpiresIn (type json.Number) as type string in assignment
+# Fix vendor/k8s.io/client-go/plugin/pkg/client/auth/azure/azure.go:266:23: cannot use token.token.ExpiresOn (type json.Number) as type string in assignment
+[[override]]
+name = "github.com/Azure/go-autorest"
+revision = "bca49d5b51a50dc5bb17bbf6204c711c6dbded06"
