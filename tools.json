@@ -35,6 +35,10 @@
     {
       "Repository": "github.com/kisielk/errcheck",
       "Commit": "1787c4bee836470bf45018cfbc783650db3c6501"
+    },
+    {
+      "Repository": "github.com/goreleaser/goreleaser",
+      "Commit": "a6bef50b0f544efc96b284eae66feef8312ef6e0"
     }
   ],
   "RetoolVersion": "1.3.7"
