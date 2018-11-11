@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: heimdallr
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: heimdallr
+  namespace: heimdallr
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: httpchecks.heimdallr.froe.io
+spec:
+  group: heimdallr.froe.io
+  version: v1alpha1
+  names:
+    kind: HTTPCheck
+    plural: httpchecks
+  scope: Namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: heimdallr
+rules:
+- apiGroups:
+  - heimdallr.froe.io
+  resources:
+  - httpchecks
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: heimdallr
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: heimdallr
+subjects:
+- kind: ServiceAccount
+  name: heimdallr
+  namespace: heimdallr
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: heimdallr
+  name: heimdallr
+  namespace: heimdallr
+spec:
+  selector:
+    matchLabels:
+      app: heimdallr
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: heimdallr
+    spec:
+      containers:
+      - image: quay.io/jeromefroe/heimdallr:0.1.0
+        name: heimdallr
+        command: ["heimdallr"]
+        env:
+          - name: PINGDOM_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: pingdom
+                key: PINGDOM_USERNAME
+          - name: PINGDOM_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pingdom
+                key: PINGDOM_PASSWORD
+          - name: PINGDOM_APPKEY
+            valueFrom:
+              secretKeyRef:
+                name: pingdom
+                key: PINGDOM_APPKEY
+      serviceAccountName: heimdallr

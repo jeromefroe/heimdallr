@@ -1,0 +1,12 @@
+apiVersion: heimdallr.froe.io/v1alpha1
+kind: HTTPCheck
+metadata:
+  name: google-com
+  namespace: web
+spec:
+  hostname: google.com
+  intervalMinutes: 1
+  triggerThreshold: 1
+  retriggerThreshold: 10
+  notifyWhenBackup: true
+  enableTLS: true

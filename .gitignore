@@ -3,3 +3,6 @@ vendor/
 
 # retool dependencies
 _tools/
+
+# goreleaser build directory
+dist/
