@@ -33,7 +33,7 @@ of inferring them from Ingress objects.
     kubectl apply -f https://raw.githubusercontent.com/jeromefroe/heimdallr/master/deployment/check.yaml
     ```
 
-That's it! Heimdallr will create a Pingdom HTTP check for the given endpoint,
+That's it! Heimdallr will create a Pingdom HTTP check for the given endpoint.
 
 [Heimdallr]: https://en.wikipedia.org/wiki/Heimdallr
 [Heptio Cruise]: https://github.com/heptiolabs/cruise
