@@ -77,3 +77,7 @@ push: container
 	    docker tag $(IMAGE):$(VERSION) $(IMAGE):latest; \
 	    docker push $(IMAGE):latest; \
 	fi
+
+# Release
+release:
+	retool do goreleaser
