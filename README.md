@@ -14,24 +14,24 @@ of inferring them from Ingress objects.
 
 1. Deploy Heimdallr to your cluster:
 
-  ```bash
-  kubectl apply -f https://raw.githubusercontent.com/jeromefroe/heimdallr/master/deployment/heimdallr.yaml
-  ```
+    ```bash
+    kubectl apply -f https://raw.githubusercontent.com/jeromefroe/heimdallr/master/deployment/heimdallr.yaml
+    ```
 
 2. Create a secret with your Pingdom credentials:
 
-  ```bash
-  kubectl -n heimdallr create secret generic pingdom \
-          --from-literal=PINGDOM_USERNAME=user@domain.com \
-          --from-literal=PINGDOM_PASSWORD=password \
-          --from-literal=PINGDOM_APPKEY=appkey
-  ```
+    ```bash
+    kubectl -n heimdallr create secret generic pingdom \
+            --from-literal=PINGDOM_USERNAME=user@domain.com \
+            --from-literal=PINGDOM_PASSWORD=password \
+            --from-literal=PINGDOM_APPKEY=appkey
+    ```
 
 3. Create a HTTP check for an endpoint (this will create a check for `google.com`):
 
-  ```bash
-  kubectl apply -f https://raw.githubusercontent.com/jeromefroe/heimdallr/master/deployment/check.yaml
-  ```
+    ```bash
+    kubectl apply -f https://raw.githubusercontent.com/jeromefroe/heimdallr/master/deployment/check.yaml
+    ```
 
 That's it! Heimdallr will create a Pingdom HTTP check for the given endpoint,
 
