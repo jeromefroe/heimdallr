@@ -66,6 +66,12 @@ test-full:
 # CI
 ci: lint test-full
 
+# Release
+release:
+	git tag -a $(VERSION) -m "Releasing version $(VERSION)"
+	git push origin $(VERSION)
+	retool do goreleaser
+
 # Docker
 container:
 	docker build -t $(IMAGE):$(VERSION) .
@@ -77,7 +83,3 @@ push: container
 	    docker tag $(IMAGE):$(VERSION) $(IMAGE):latest; \
 	    docker push $(IMAGE):latest; \
 	fi
-
-# Release
-release:
-	retool do goreleaser
