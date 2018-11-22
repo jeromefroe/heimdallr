@@ -91,11 +91,13 @@ func new(user, idTag string, client pingdomClient, logger *zap.Logger) (*Client,
 // Sync fetches the current state of Pingdom.
 func (c *Client) sync() error {
 	list, err := c.client.Checks().List(map[string]string{
-		"tags": c.idTag,
+		"tags":         c.idTag,
+		"include_tags": "true",
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get current list of heimdallr checks: %v", err)
 	}
+	c.logger.Info("found existing checks, checking if any are managed by heimdallr", zap.Int("count", len(list)))
 
 	for _, cr := range list {
 		if check, ok := toHTTPCheck(cr); ok {

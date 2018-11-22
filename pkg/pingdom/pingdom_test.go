@@ -56,17 +56,19 @@ func TestNewClient(t *testing.T) {
 		},
 	}, nil)
 
-	checks.EXPECT().List(map[string]string{"tags": heimdallrTag}).Return([]pingdom.CheckResponse{
-		{
-			ID:   71,
-			Name: "default/foo",
-			Type: pingdom.CheckResponseType{
-				HTTP: &pingdom.CheckResponseHTTPDetails{
-					Encryption: false,
+	checks.EXPECT().
+		List(map[string]string{"tags": heimdallrTag, "include_tags": "true"}).
+		Return([]pingdom.CheckResponse{
+			{
+				ID:   71,
+				Name: "default/foo",
+				Type: pingdom.CheckResponseType{
+					HTTP: &pingdom.CheckResponseHTTPDetails{
+						Encryption: false,
+					},
 				},
 			},
-		},
-	}, nil)
+		}, nil)
 
 	cli.EXPECT().Users().Return(users)
 	cli.EXPECT().Checks().Return(checks)
@@ -87,36 +89,38 @@ func TestSync(t *testing.T) {
 		cli    = NewMockpingdomClient(ctrl)
 	)
 
-	checks.EXPECT().List(map[string]string{"tags": heimdallrTag}).Return([]pingdom.CheckResponse{
-		{
-			ID:                       71,
-			Name:                     "default/foo",
-			Hostname:                 "foo.io",
-			Resolution:               10,
-			SendNotificationWhenDown: 3,
-			NotifyAgainEvery:         30,
-			NotifyWhenBackup:         true,
-			Type: pingdom.CheckResponseType{
-				HTTP: &pingdom.CheckResponseHTTPDetails{
-					Encryption: false,
+	checks.EXPECT().
+		List(map[string]string{"tags": heimdallrTag, "include_tags": "true"}).
+		Return([]pingdom.CheckResponse{
+			{
+				ID:                       71,
+				Name:                     "default/foo",
+				Hostname:                 "foo.io",
+				Resolution:               10,
+				SendNotificationWhenDown: 3,
+				NotifyAgainEvery:         30,
+				NotifyWhenBackup:         true,
+				Type: pingdom.CheckResponseType{
+					HTTP: &pingdom.CheckResponseHTTPDetails{
+						Encryption: false,
+					},
 				},
 			},
-		},
-		{
-			ID:                       82,
-			Name:                     "other/bar",
-			Hostname:                 "bar.com",
-			Resolution:               5,
-			SendNotificationWhenDown: 2,
-			NotifyAgainEvery:         8,
-			NotifyWhenBackup:         false,
-			Type: pingdom.CheckResponseType{
-				HTTP: &pingdom.CheckResponseHTTPDetails{
-					Encryption: true,
+			{
+				ID:                       82,
+				Name:                     "other/bar",
+				Hostname:                 "bar.com",
+				Resolution:               5,
+				SendNotificationWhenDown: 2,
+				NotifyAgainEvery:         8,
+				NotifyWhenBackup:         false,
+				Type: pingdom.CheckResponseType{
+					HTTP: &pingdom.CheckResponseHTTPDetails{
+						Encryption: true,
+					},
 				},
 			},
-		},
-	}, nil)
+		}, nil)
 
 	cli.EXPECT().Checks().Return(checks)
 
