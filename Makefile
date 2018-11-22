@@ -9,8 +9,6 @@ SRC_DIRS := ./cmd ./pkg
 SRC_FILES := $(shell find $(SRC_DIRS) -name '*.go')
 PKGS := $(shell go list ./cmd/... ./pkg/... | grep -v /pkg/apis/ | grep -v /pkg/client/)
 
-GITHUB_TOKEN := $(GITHUB_TOKEN)
-
 # Tools
 retool:
 	which retool || go get github.com/twitchtv/retool
@@ -70,9 +68,7 @@ ci: lint test-full
 
 # Release
 release:
-	ifndef GITHUB_TOKEN
-  $(error GITHUB_TOKEN must be set to release a new version)
-  endif
+	test $(GITHUB_TOKEN) || $(error GITHUB_TOKEN must be set to release a new version)
 	git tag -a $(VERSION) -m "Releasing version $(VERSION)"
 	git push origin $(VERSION)
 	retool do goreleaser
