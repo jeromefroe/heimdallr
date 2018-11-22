@@ -1,13 +1,15 @@
-PROJECT = heimdallr
+PROJECT := heimdallr
 REGISTRY ?= quay.io/jeromefroe
 IMAGE := $(REGISTRY)/$(PROJECT)
 
-GIT_REF = $(shell git rev-parse --short HEAD)
+GIT_REF := $(shell git rev-parse --short HEAD)
 VERSION ?= $(GIT_REF)
 
 SRC_DIRS := ./cmd ./pkg
 SRC_FILES := $(shell find $(SRC_DIRS) -name '*.go')
 PKGS := $(shell go list ./cmd/... ./pkg/... | grep -v /pkg/apis/ | grep -v /pkg/client/)
+
+GITHUB_TOKEN := $(GITHUB_TOKEN)
 
 # Tools
 retool:
@@ -68,6 +70,9 @@ ci: lint test-full
 
 # Release
 release:
+	ifndef GITHUB_TOKEN
+  $(error GITHUB_TOKEN must be set to release a new version)
+  endif
 	git tag -a $(VERSION) -m "Releasing version $(VERSION)"
 	git push origin $(VERSION)
 	retool do goreleaser
