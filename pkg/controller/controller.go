@@ -59,10 +59,12 @@ func (c *Controller) OnAdd(obj interface{}) {
 	err := c.client.UpdateHTTPCheck(*chk)
 	if err != nil {
 		chk.Status.State = fmt.Sprintf("failed to create check: %v", err)
+		c.logger.Error("unexpected error encountered adding check", zap.Error(err))
 		return
 	}
 
 	chk.Status.State = "successfully created check"
+	c.logger.Info("OnAdd successful", zap.String("name", chk.Name))
 }
 
 // OnUpdate handles updates HTTP checks.
@@ -78,16 +80,22 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	}
 
 	if oldChk == newChk {
+		c.logger.Info(
+			"new and old checks are identical so no further work is required",
+			zap.String("name", newChk.Name),
+		)
 		return
 	}
 
 	err := c.client.UpdateHTTPCheck(*newChk)
 	if err != nil {
 		newChk.Status.State = fmt.Sprintf("failed to update check: %v", err)
+		c.logger.Error("unexpected error encountered updating check", zap.Error(err))
 		return
 	}
 
 	newChk.Status.State = "successfully updated check"
+	c.logger.Info("OnUpdate successful", zap.String("name", newChk.Name))
 }
 
 // OnDelete handles deleted HTTP checks.
@@ -101,10 +109,12 @@ func (c *Controller) OnDelete(obj interface{}) {
 	err := c.client.DeleteHTTPCheck(*chk)
 	if err != nil {
 		chk.Status.State = fmt.Sprintf("failed to delete check: %v", err)
+		c.logger.Error("unexpected error encountered deleting check", zap.Error(err))
 		return
 	}
 
 	chk.Status.State = "successfully deleted check"
+	c.logger.Info("OnDelete successful", zap.String("name", chk.Name))
 }
 
 func (c Controller) logUnexpected(fn string, obj interface{}) {
