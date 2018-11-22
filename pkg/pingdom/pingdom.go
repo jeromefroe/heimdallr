@@ -27,6 +27,7 @@ import (
 	"github.com/jeromefroe/heimdallr/pkg/apis/heimdallr/v1alpha1"
 
 	"github.com/russellcardullo/go-pingdom/pingdom"
+	"go.uber.org/zap"
 )
 
 // heimdallrTag is the tag added to every check to indicate that it is managed by heimdallr.
@@ -44,18 +45,19 @@ type Client struct {
 	idTag      string
 	client     pingdomClient
 	httpChecks map[string]httpCheck
+	logger     *zap.Logger
 }
 
 // New creates a new Pingdom client.
-func New(user, password, key string) (*Client, error) {
+func New(user, password, key string, logger *zap.Logger) (*Client, error) {
 	var (
 		client = pingdom.NewClient(user, password, key)
 		shim   = newShimClient(client)
 	)
-	return new(user, heimdallrTag, shim)
+	return new(user, heimdallrTag, shim, logger)
 }
 
-func new(user, idTag string, client pingdomClient) (*Client, error) {
+func new(user, idTag string, client pingdomClient, logger *zap.Logger) (*Client, error) {
 	users, err := client.Users().List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get list of users for account: %v", err)
@@ -80,6 +82,7 @@ func new(user, idTag string, client pingdomClient) (*Client, error) {
 		idTag:      idTag,
 		client:     client,
 		httpChecks: make(map[string]httpCheck),
+		logger:     logger,
 	}
 
 	return c, c.sync()
@@ -97,6 +100,7 @@ func (c *Client) sync() error {
 	for _, cr := range list {
 		if check, ok := toHTTPCheck(cr); ok {
 			c.httpChecks[cr.Name] = check
+			c.logger.Info("found pre-existing check", zap.String("name", cr.Name))
 		}
 	}
 	return nil
@@ -124,6 +128,7 @@ func (c *Client) UpdateHTTPCheck(check v1alpha1.HTTPCheck) error {
 			return fmt.Errorf("failed to update check: %v", err)
 		}
 		hc.spec = check.Spec
+		c.logger.Info("successfully updated check", zap.String("name", hc.name))
 	} else {
 		res, err := c.client.Checks().Create(&pc)
 		if err != nil {
@@ -134,6 +139,7 @@ func (c *Client) UpdateHTTPCheck(check v1alpha1.HTTPCheck) error {
 			name: name,
 			spec: check.Spec,
 		}
+		c.logger.Info("successfully created check", zap.String("name", hc.name))
 	}
 
 	c.httpChecks[name] = hc
@@ -154,6 +160,7 @@ func (c *Client) DeleteHTTPCheck(check v1alpha1.HTTPCheck) error {
 	}
 
 	delete(c.httpChecks, name)
+	c.logger.Info("successfully deleted check", zap.String("name", name))
 	return nil
 }
 

@@ -47,12 +47,15 @@ func main() {
 	)
 	sw := cache.NewSharedInformer(lw, new(heimdallrv1.HTTPCheck), time.Duration(0)) // resync timer disabled
 
-	pc, err := pingdom.New(*username, *password, *appkey)
+	pc, err := pingdom.New(*username, *password, *appkey, logger)
 	if err != nil {
 		logger.Fatal("unable to create pingdom client", zap.Error(err))
 	}
+	logger.Info("successfully created Pingdom client")
 
 	ctrl := controller.New(pc, logger)
 	sw.AddEventHandler(ctrl)
+
+	logger.Info("starting controller")
 	sw.Run(nil)
 }

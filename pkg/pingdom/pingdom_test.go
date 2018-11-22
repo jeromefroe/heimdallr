@@ -29,6 +29,7 @@ import (
 	"github.com/russellcardullo/go-pingdom/pingdom"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -70,7 +71,7 @@ func TestNewClient(t *testing.T) {
 	cli.EXPECT().Users().Return(users)
 	cli.EXPECT().Checks().Return(checks)
 
-	client, err := new(user, heimdallrTag, cli)
+	client, err := new(user, heimdallrTag, cli, zap.NewNop())
 	require.NoError(t, err)
 	assert.Equal(t, id, client.userID)
 
@@ -123,6 +124,7 @@ func TestSync(t *testing.T) {
 		client:     cli,
 		idTag:      heimdallrTag,
 		httpChecks: make(map[string]httpCheck),
+		logger:     zap.NewNop(),
 	}
 	require.NoError(t, client.sync())
 
@@ -193,6 +195,7 @@ func TestUpdateHTTPCheckWithNewCheck(t *testing.T) {
 	client := Client{
 		client:     cli,
 		httpChecks: map[string]httpCheck{},
+		logger:     zap.NewNop(),
 	}
 
 	err := client.UpdateHTTPCheck(check)
@@ -245,6 +248,7 @@ func TestUpdateHTTPCheckWithExistingCheck(t *testing.T) {
 				name: name,
 			},
 		},
+		logger: zap.NewNop(),
 	}
 
 	err := client.UpdateHTTPCheck(check)
@@ -280,6 +284,7 @@ func TestDeleteHTTPCheck(t *testing.T) {
 				id: id,
 			},
 		},
+		logger: zap.NewNop(),
 	}
 
 	check := v1alpha1.HTTPCheck{
