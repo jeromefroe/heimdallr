@@ -44,6 +44,7 @@ type HTTPCheckSpec struct {
 	RetriggerThreshold int    `json:"retriggerThreshold"`
 	NotifyWhenBackup   bool   `json:"notifyWhenBackup"`
 	EnableTLS          bool   `json:"enableTLS"`
+	IntegrationIDs     []int  `json:"integrationIDs"`
 }
 
 // HTTPCheckStatus is the status for a HTTPCheck resource.

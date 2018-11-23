@@ -125,6 +125,7 @@ func (c *Client) UpdateHTTPCheck(check v1alpha1.HTTPCheck) error {
 		NotifyAgainEvery:         check.Spec.RetriggerThreshold,
 		NotifyWhenBackup:         check.Spec.NotifyWhenBackup,
 		Tags:                     heimdallrTag,
+		IntegrationIds:           check.Spec.IntegrationIDs,
 	}
 
 	hc, ok := c.httpChecks[name]
@@ -204,6 +205,7 @@ func (c *Client) toHTTPCheck(cr pingdom.CheckResponse) (httpCheck, bool, error) 
 			RetriggerThreshold: chk.NotifyAgainEvery,
 			NotifyWhenBackup:   chk.NotifyWhenBackup,
 			EnableTLS:          tlsEnabled,
+			IntegrationIDs:     chk.IntegrationIds,
 		},
 	}, true, nil
 }

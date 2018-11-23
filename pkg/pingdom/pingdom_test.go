@@ -114,6 +114,7 @@ func TestSync(t *testing.T) {
 					Encryption: false,
 				},
 			},
+			IntegrationIds: []int{7},
 		}
 		secondCheck = &pingdom.CheckResponse{
 			ID:                       secondCheckID,
@@ -174,6 +175,7 @@ func TestSync(t *testing.T) {
 			RetriggerThreshold: 30,
 			NotifyWhenBackup:   true,
 			EnableTLS:          false,
+			IntegrationIDs:     []int{7},
 		},
 	}
 	assert.Equal(t, expected, client.httpChecks["default/foo"])
@@ -206,6 +208,7 @@ func TestUpdateHTTPCheckWithNewCheck(t *testing.T) {
 			RetriggerThreshold: 30,
 			NotifyWhenBackup:   true,
 			EnableTLS:          false,
+			IntegrationIDs:     []int{3},
 		}
 		check = v1alpha1.HTTPCheck{
 			ObjectMeta: metav1.ObjectMeta{
