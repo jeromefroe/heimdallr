@@ -71,7 +71,7 @@ release:
 	@if test -z ${GITHUB_TOKEN}; then echo "GITHUB_TOKEN must be set to release a new version"; exit 1; fi
 	git tag -a $(VERSION) -m "Releasing version $(VERSION)"
 	git push origin $(VERSION)
-	retool do goreleaser
+	retool do goreleaser --rm-dist
 
 # Docker
 container:
