@@ -38,44 +38,50 @@ func TestNewClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	var (
-		id     = 42
-		user   = "bob@example.come"
-		users  = NewMockuserService(ctrl)
-		checks = NewMockcheckService(ctrl)
-		cli    = NewMockpingdomClient(ctrl)
-	)
-
-	users.EXPECT().List().Return([]pingdom.UsersResponse{
-		{
-			Id: id,
-			Email: []pingdom.UserEmailResponse{
+		userID   = 42
+		user     = "bob@example.come"
+		users    = NewMockuserService(ctrl)
+		checks   = NewMockcheckService(ctrl)
+		cli      = NewMockpingdomClient(ctrl)
+		checkID  = 71
+		response = &pingdom.CheckResponse{
+			ID:   checkID,
+			Name: "default/foo",
+			Tags: []pingdom.CheckResponseTag{
 				{
-					Address: user,
+					Name: heimdallrTag,
 				},
 			},
-		},
-	}, nil)
+		}
+	)
 
-	checks.EXPECT().
-		List(map[string]string{"tags": heimdallrTag, "include_tags": "true"}).
-		Return([]pingdom.CheckResponse{
+	users.EXPECT().
+		List().
+		Return([]pingdom.UsersResponse{
 			{
-				ID:   71,
-				Name: "default/foo",
-				Tags: []pingdom.CheckResponseTag{
+				Id: userID,
+				Email: []pingdom.UserEmailResponse{
 					{
-						Name: heimdallrTag,
+						Address: user,
 					},
 				},
 			},
 		}, nil)
 
+	checks.EXPECT().
+		List(map[string]string{"tags": heimdallrTag, "include_tags": "true"}).
+		Return([]pingdom.CheckResponse{*response}, nil)
+
+	checks.EXPECT().
+		Read(checkID).
+		Return(response, nil)
+
 	cli.EXPECT().Users().Return(users)
-	cli.EXPECT().Checks().Return(checks)
+	cli.EXPECT().Checks().Times(2).Return(checks)
 
 	client, err := new(user, cli, zap.NewNop())
 	require.NoError(t, err)
-	assert.Equal(t, id, client.userID)
+	assert.Equal(t, userID, client.userID)
 
 	assert.Len(t, client.httpChecks, 1)
 }
@@ -87,45 +93,67 @@ func TestSync(t *testing.T) {
 	var (
 		checks = NewMockcheckService(ctrl)
 		cli    = NewMockpingdomClient(ctrl)
+
+		firstCheckID  = 71
+		secondCheckID = 82
+		firstCheck    = &pingdom.CheckResponse{
+			ID:                       firstCheckID,
+			Name:                     "default/foo",
+			Hostname:                 "foo.io",
+			Resolution:               10,
+			SendNotificationWhenDown: 3,
+			NotifyAgainEvery:         30,
+			NotifyWhenBackup:         true,
+			Tags: []pingdom.CheckResponseTag{
+				{
+					Name: heimdallrTag,
+				},
+			},
+			Type: pingdom.CheckResponseType{
+				HTTP: &pingdom.CheckResponseHTTPDetails{
+					Encryption: false,
+				},
+			},
+		}
+		secondCheck = &pingdom.CheckResponse{
+			ID:                       secondCheckID,
+			Name:                     "other/bar",
+			Hostname:                 "bar.com",
+			Resolution:               5,
+			SendNotificationWhenDown: 2,
+			NotifyAgainEvery:         8,
+			NotifyWhenBackup:         false,
+			Tags: []pingdom.CheckResponseTag{
+				{
+					Name: heimdallrTag,
+				},
+			},
+			Type: pingdom.CheckResponseType{
+				HTTP: &pingdom.CheckResponseHTTPDetails{
+					Encryption: true,
+				},
+			},
+		}
 	)
 
 	checks.EXPECT().
 		List(map[string]string{"tags": heimdallrTag, "include_tags": "true"}).
 		Return([]pingdom.CheckResponse{
-			{
-				ID:                       71,
-				Name:                     "default/foo",
-				Hostname:                 "foo.io",
-				Resolution:               10,
-				SendNotificationWhenDown: 3,
-				NotifyAgainEvery:         30,
-				NotifyWhenBackup:         true,
-				Tags: []pingdom.CheckResponseTag{
-					{
-						Name: heimdallrTag,
-					},
-				},
-			},
-			{
-				ID:                       82,
-				Name:                     "other/bar",
-				Hostname:                 "bar.com",
-				Resolution:               5,
-				SendNotificationWhenDown: 2,
-				NotifyAgainEvery:         8,
-				NotifyWhenBackup:         false,
-				Tags: []pingdom.CheckResponseTag{
-					{
-						Name: heimdallrTag,
-					},
-					{
-						Name: tlsEnabledTag,
-					},
-				},
-			},
+			*firstCheck,
+			*secondCheck,
 		}, nil)
 
-	cli.EXPECT().Checks().Return(checks)
+	checks.
+		EXPECT().
+		Read(firstCheckID).
+		Return(firstCheck, nil)
+
+	checks.
+		EXPECT().
+		Read(secondCheckID).
+		Return(secondCheck, nil)
+
+	cli.EXPECT().Checks().Times(3).Return(checks)
 
 	client := Client{
 		client:     cli,

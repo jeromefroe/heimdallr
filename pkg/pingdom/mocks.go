@@ -69,6 +69,19 @@ func (m *MockcheckService) EXPECT() *MockcheckServiceMockRecorder {
 	return m.recorder
 }
 
+// Read mocks base method
+func (m *MockcheckService) Read(id int) (*pingdom.CheckResponse, error) {
+	ret := m.ctrl.Call(m, "Read", id)
+	ret0, _ := ret[0].(*pingdom.CheckResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Read indicates an expected call of Read
+func (mr *MockcheckServiceMockRecorder) Read(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Read", reflect.TypeOf((*MockcheckService)(nil).Read), id)
+}
+
 // Create mocks base method
 func (m *MockcheckService) Create(check pingdom.Check) (*pingdom.CheckResponse, error) {
 	ret := m.ctrl.Call(m, "Create", check)

@@ -29,6 +29,7 @@ type userService interface {
 }
 
 type checkService interface {
+	Read(id int) (*pingdom.CheckResponse, error)
 	Create(check pingdom.Check) (*pingdom.CheckResponse, error)
 	Update(id int, check pingdom.Check) (*pingdom.PingdomResponse, error)
 	Delete(id int) (*pingdom.PingdomResponse, error)
