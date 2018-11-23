@@ -30,8 +30,15 @@ import (
 	"go.uber.org/zap"
 )
 
-// heimdallrTag is the tag added to every check to indicate that it is managed by heimdallr.
-var heimdallrTag = "managed-by-heimdallr"
+const (
+	// heimdallrTag is the tag added to every check to indicate that it is managed by heimdallr.
+	heimdallrTag = "managed-by-heimdallr"
+
+	// tlsEnabledTag is the tag added to checks which have enabled TLS. Since the Pingdom API
+	// doesn't return whether a check has enabled or not we need to add a tag to the check to
+	// return that information for us.
+	tlsEnabledTag = "tls-enabled"
+)
 
 type httpCheck struct {
 	id   int
@@ -42,7 +49,6 @@ type httpCheck struct {
 // Client is a Pingdom API Client.
 type Client struct {
 	userID     int
-	idTag      string
 	client     pingdomClient
 	httpChecks map[string]httpCheck
 	logger     *zap.Logger
@@ -54,10 +60,10 @@ func New(user, password, key string, logger *zap.Logger) (*Client, error) {
 		client = pingdom.NewClient(user, password, key)
 		shim   = newShimClient(client)
 	)
-	return new(user, heimdallrTag, shim, logger)
+	return new(user, shim, logger)
 }
 
-func new(user, idTag string, client pingdomClient, logger *zap.Logger) (*Client, error) {
+func new(user string, client pingdomClient, logger *zap.Logger) (*Client, error) {
 	users, err := client.Users().List()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get list of users for account: %v", err)
@@ -79,7 +85,6 @@ func new(user, idTag string, client pingdomClient, logger *zap.Logger) (*Client,
 
 	c := &Client{
 		userID:     *userID,
-		idTag:      idTag,
 		client:     client,
 		httpChecks: make(map[string]httpCheck),
 		logger:     logger,
@@ -91,7 +96,7 @@ func new(user, idTag string, client pingdomClient, logger *zap.Logger) (*Client,
 // Sync fetches the current state of Pingdom.
 func (c *Client) sync() error {
 	list, err := c.client.Checks().List(map[string]string{
-		"tags":         c.idTag,
+		"tags":         heimdallrTag,
 		"include_tags": "true",
 	})
 	if err != nil {
@@ -166,21 +171,39 @@ func (c *Client) DeleteHTTPCheck(check v1alpha1.HTTPCheck) error {
 	return nil
 }
 
-func toHTTPCheck(c pingdom.CheckResponse) (httpCheck, bool) {
-	if c.Type.HTTP == nil {
+func toHTTPCheck(cr pingdom.CheckResponse) (httpCheck, bool) {
+	var found bool
+	for _, tag := range cr.Tags {
+		if tag.Name == heimdallrTag {
+			found = true
+			break
+		}
+	}
+
+	if !found {
 		return httpCheck{}, false
 	}
 
+	// The Pingdom API doesn't return whether a check is done over TLS or not so we use
+	// a special tag to encode that information.
+	var tlsEnabled bool
+	for _, tag := range cr.Tags {
+		if tag.Name == tlsEnabledTag {
+			tlsEnabled = true
+			break
+		}
+	}
+
 	return httpCheck{
-		id:   c.ID,
-		name: c.Name,
+		id:   cr.ID,
+		name: cr.Name,
 		spec: v1alpha1.HTTPCheckSpec{
-			Hostname:           c.Hostname,
-			IntervalMinutes:    c.Resolution,
-			TriggerThreshold:   c.SendNotificationWhenDown,
-			RetriggerThreshold: c.NotifyAgainEvery,
-			NotifyWhenBackup:   c.NotifyWhenBackup,
-			EnableTLS:          c.Type.HTTP.Encryption,
+			Hostname:           cr.Hostname,
+			IntervalMinutes:    cr.Resolution,
+			TriggerThreshold:   cr.SendNotificationWhenDown,
+			RetriggerThreshold: cr.NotifyAgainEvery,
+			NotifyWhenBackup:   cr.NotifyWhenBackup,
+			EnableTLS:          tlsEnabled,
 		},
 	}, true
 }

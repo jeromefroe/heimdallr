@@ -29,6 +29,7 @@ import (
 	"github.com/jeromefroe/heimdallr/pkg/apis/heimdallr/v1alpha1"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -47,7 +48,7 @@ func TestIntegration(t *testing.T) {
 			Namespace: "heimdallr",
 		}
 		spec = v1alpha1.HTTPCheckSpec{
-			Hostname:           "froe.io",
+			Hostname:           "google.com",
 			IntervalMinutes:    1,
 			TriggerThreshold:   1,
 			RetriggerThreshold: 10,
@@ -60,11 +61,7 @@ func TestIntegration(t *testing.T) {
 		}
 	)
 
-	// This isn't very clean, but we override heimdallrTag for the test so we can
-	// know which checks the test creates.
-	heimdallrTag = "heimdallr-test"
-
-	client, err := New(username, password, appkey)
+	client, err := New(username, password, appkey, zap.NewNop())
 	require.NoError(t, err)
 	require.Len(t, client.httpChecks, 0)
 

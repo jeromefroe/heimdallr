@@ -62,9 +62,9 @@ func TestNewClient(t *testing.T) {
 			{
 				ID:   71,
 				Name: "default/foo",
-				Type: pingdom.CheckResponseType{
-					HTTP: &pingdom.CheckResponseHTTPDetails{
-						Encryption: false,
+				Tags: []pingdom.CheckResponseTag{
+					{
+						Name: heimdallrTag,
 					},
 				},
 			},
@@ -73,7 +73,7 @@ func TestNewClient(t *testing.T) {
 	cli.EXPECT().Users().Return(users)
 	cli.EXPECT().Checks().Return(checks)
 
-	client, err := new(user, heimdallrTag, cli, zap.NewNop())
+	client, err := new(user, cli, zap.NewNop())
 	require.NoError(t, err)
 	assert.Equal(t, id, client.userID)
 
@@ -100,9 +100,9 @@ func TestSync(t *testing.T) {
 				SendNotificationWhenDown: 3,
 				NotifyAgainEvery:         30,
 				NotifyWhenBackup:         true,
-				Type: pingdom.CheckResponseType{
-					HTTP: &pingdom.CheckResponseHTTPDetails{
-						Encryption: false,
+				Tags: []pingdom.CheckResponseTag{
+					{
+						Name: heimdallrTag,
 					},
 				},
 			},
@@ -114,9 +114,12 @@ func TestSync(t *testing.T) {
 				SendNotificationWhenDown: 2,
 				NotifyAgainEvery:         8,
 				NotifyWhenBackup:         false,
-				Type: pingdom.CheckResponseType{
-					HTTP: &pingdom.CheckResponseHTTPDetails{
-						Encryption: true,
+				Tags: []pingdom.CheckResponseTag{
+					{
+						Name: heimdallrTag,
+					},
+					{
+						Name: tlsEnabledTag,
 					},
 				},
 			},
@@ -126,7 +129,6 @@ func TestSync(t *testing.T) {
 
 	client := Client{
 		client:     cli,
-		idTag:      heimdallrTag,
 		httpChecks: make(map[string]httpCheck),
 		logger:     zap.NewNop(),
 	}
