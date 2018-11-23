@@ -116,6 +116,12 @@ func (c *Client) sync() error {
 // UpdateHTTPCheck updates an HTTP check, creating it if it does not exist.
 func (c *Client) UpdateHTTPCheck(check v1alpha1.HTTPCheck) error {
 	name := getName(check)
+
+	tags := heimdallrTag
+	if check.Spec.EnableTLS {
+		tags = fmt.Sprintf("%s,%s", heimdallrTag, tlsEnabledTag)
+	}
+
 	pc := pingdom.HttpCheck{
 		Name:                     name,
 		UserIds:                  []int{c.userID},
@@ -125,7 +131,7 @@ func (c *Client) UpdateHTTPCheck(check v1alpha1.HTTPCheck) error {
 		SendNotificationWhenDown: check.Spec.TriggerThreshold,
 		NotifyAgainEvery:         check.Spec.RetriggerThreshold,
 		NotifyWhenBackup:         check.Spec.NotifyWhenBackup,
-		Tags:                     heimdallrTag,
+		Tags:                     tags,
 	}
 
 	hc, ok := c.httpChecks[name]
